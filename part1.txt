@@ -1,0 +1,142 @@
+#!/bin/bash
+#Names: NIVEN POOVANEN COONJAMALAY M00775724; JAYSEN SOUNDARA VEERAPEN M00778499; ANMOL VISHVAS M00734701 
+
+# Store menu options selected by the user
+INPUT=/tmp/menu.sh.$$
+
+# Storage file for displaying date command output
+OUTPUT=/tmp/output.sh.$$
+
+# function to display the welcome message
+function welcome(){
+    welcome1='Welcome To Our Coursework '$USER'!'
+    welcome2="      Let's get started!          "
+
+    for n in 1 2; do
+        var="welcome${n}"
+        text=${!var}
+        for (( i=0; i<${#text}; i++ )); do
+            echo -n -e "\e[1;5;41m"${text:$i:1}"\e[0m"
+            sleep 0.01
+        done
+
+    echo
+
+    done
+
+    echo
+    sleep 3
+}
+
+function loader(){
+    (echo "20" ; sleep 1
+    echo "# Scanning Script" ; sleep 1
+    echo "60" ; sleep 1
+    echo "# Loading..." ; sleep 1 
+    echo "100" ; sleep 1
+    echo "# Done" ; sleep 1 ) | zenity --progress --title="Welcome"  --text="Coursework 2-Task 2"  --percentage=0 
+
+    if [ "$?" = 1 ] ; then
+        zenity --error \
+          --text="Loading cancelled."
+    fi
+}
+# display current system date & time
+
+function show_date(){
+	echo "Today is $(date) @ $(hostname -f)." >$OUTPUT	
+	dialog --backtitle "Coursework 1" --title "Date and time" --clear --msgbox "$(<$OUTPUT)" 6 60
+}
+
+# display a calendar and insert notes (information in a txt file)
+
+function show_calendar(){
+	cal=$(zenity --calendar --title="Calendar" --text="Select a date to add new task" --height=500 --width=400)
+	case $? in
+    0)
+        
+            case $? in 
+            0) 
+                date=${cal:0:2}${cal:3:2}${cal:8:2}
+                txt=".txt"
+                fname=${date}${txt}
+                #displaying a text box in which information will be enetered for the text file
+                newf=$(zenity --text-info --filename=$fname --editable --width=500 --height=500)
+                case $? in
+                0)
+                    #creating the text file
+                    touch $fname
+                    echo $newf > $fname
+                    zenity --info --text="File saved" --timeout=3 --width=300
+                    ;;
+                1)
+                    break
+                    ;;
+                esac
+            esac
+    
+        ;;
+    1)
+        break
+        ;;
+    esac
+ 
+}
+
+# delete a file slected by the user
+
+function delete_file(){
+    zenity --question --title="Delete File"  --width=400 
+    
+    if [ $? = 0 ]; then 
+        file=$(zenity --file-selection)
+        case $? in
+         0)
+            zenity --question --title="Delete File"  --text="Are you sure you want to delete the file?" --width=400 
+            if [ $? = 0 ]; then 
+                rm $file
+                zenity --info --text="File deleted" --timeout=3 --width=300
+            else
+                zenity --info --text="Deletion canceled" --timeout=3 --width=300
+            fi
+            ;;
+         1)
+            zenity --info --text="No file selected." --timeout=3 --width=300
+            ;;
+        esac
+    fi
+        
+}
+# Calling the welcome function
+welcome
+# Calling the loader function
+loader
+# set infinite loop
+
+while true
+do
+
+# display main menu 
+dialog --clear --backtitle "Coursework 2" \
+        --title " Main Menu " \
+        --menu " Choose one of the following options:-" 15 50 4 \
+        Date/time "Display date and time" \
+        Calendar "Display calendar" \
+        Delete "Select a file to delete" \
+        Exit "Exit to the shell" 2>"${INPUT}"
+
+menuitem=$(<"${INPUT}")
+
+
+# make decision 
+case $menuitem in
+	Date/time) show_date;;
+	Calendar) show_calendar;;
+	Delete) delete_file;;
+	Exit) break;;
+esac
+
+done
+
+
+

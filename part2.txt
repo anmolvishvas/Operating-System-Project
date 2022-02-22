@@ -1,0 +1,116 @@
+#!/bin/bash
+#Names: NIVEN POOVANEN COONJAMALAY M00775724; JAYSEN SOUNDARA VEERAPEN M00778499; ANMOL VISHVAS M00734701 
+# It defines the dialogue box exit status codes
+DIALOG_CANCEL=1
+DIALOG_ESC=255
+HEIGHT=0
+WIDTH=0
+
+# function to display the welcome message
+function welcome(){
+    welcome1='Welcome To Our Coursework '$USER'!'
+    welcome2="      Let's get started!          "
+
+    for n in 1 2; do
+        var="welcome${n}"
+        text=${!var}
+        for (( i=0; i<${#text}; i++ )); do
+            echo -n -e "\e[1;5;41m"${text:$i:1}"\e[0m"
+            sleep 0.01
+        done
+
+    echo
+
+    done
+
+    echo
+    sleep 3
+}
+# Displaying a progress bar
+function loader(){
+    (echo "20" ; sleep 1
+    echo "# Scanning Script" ; sleep 1
+    echo "60" ; sleep 1
+    echo "# Loading..." ; sleep 1
+    echo "100" ; sleep 1
+    echo "# Done" ; sleep 1 ) | zenity --progress --title="Welcome"  --text="Coursework 2-Task 2"  --percentage=0 
+
+    if [ "$?" = 1 ] ; then
+        zenity --error \
+          --text="Loading cancelled."
+    fi
+}
+# function to display information according to selection
+show_info() {
+  dialog --title "$1" \
+    --no-collapse \
+    --msgbox "$info" 0 0
+}
+# Calling the welcome function
+welcome
+# Calling the loader function
+loader
+# Display the menu item with a while loop
+while true; do
+  # file descript 3 is created and will be redirected to file descriptor 1
+  exec 3>&1
+  selection=$(dialog \
+    --backtitle "Computer System Information" \
+    --title "[Main Menu]" \
+    --clear \
+    --cancel-label "Exit" \
+    --menu "\nPlease select:" $HEIGHT $WIDTH 7 \
+                    "1" "Display OS Type" \
+                    "2" "Display CPU Info" \
+                    "3" "Display Memory Info" \
+                    "4" "Display HardDisk Info" \
+                    "5" "Display File System" \
+    2>&1 1>&3)
+  exit_status=$?
+  exec 3>&-
+  
+  # Case to display if program exit successfully or aborted the program
+  case $exit_status in
+    $DIALOG_CANCEL)
+      clear
+      echo "Program exit successfully."
+      exit
+      ;;
+    $DIALOG_ESC)
+      clear
+      echo "Program aborted." >&2
+      exit 1
+      ;;
+  esac
+  
+  # case selection to display info as per the choice selected by user
+  case $selection in
+    1 )
+      info=$( cat /etc/os-release )
+      show_info "Operating System Type"
+      ;;
+    2 )
+      #lscpu gathers CPU architecture information 
+      info=$(lscpu)
+      show_info "CPU Information"
+      ;;
+    3 )
+      #gathers information about the memory
+      info=$(less /proc/meminfo)
+      show_info "Memory Information"
+      ;;
+    4 )
+      #gathers information for the hard disk
+      info=$(lsblk)
+      show_info "Hard disk Information"
+      ;;
+    5 )
+      #disk filesystem information
+      info=$(df)
+      show_info "File System (Mounted)"
+      ;;
+  esac
+done
+  
+
+
